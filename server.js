@@ -26,23 +26,31 @@ fs.createReadStream('./data/leaderboard.csv')
         leaderboardData.push(row);
     })
     .on('end', () => {
-        leaderboardData.sort((a, b) => b.skill_badge_count + b.trivia_quest_count + b.game_count - a.skill_badge_count - a.trivia_quest_count - a.game_count);
+        sortLeaderboard(); // Sort the leaderboard data in descending order based on the score
     });
 
 wss.on('connection', (ws) => {
     ws.send(JSON.stringify(leaderboardData));
 });
 
-app.post('/add_entry', express.json(), (req, res) => {
-    const newEntry = req.body;
-    leaderboardData.push(newEntry);
-    leaderboardData.sort((a, b) => b.skill_badge_count + b.trivia_quest_count + b.game_count - a.skill_badge_count - a.trivia_quest_count - a.game_count);
+function sortLeaderboard() {
+    leaderboardData.sort((a, b) => {
+        const scoreA = parseInt(a.skill_badge_count) + parseInt(a.trivia_quest_count) + parseInt(a.game_count);
+        const scoreB = parseInt(b.skill_badge_count) + parseInt(b.trivia_quest_count) + parseInt(b.game_count);
+        return scoreB - scoreA;
+    });
 
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(leaderboardData));
         }
     });
+}
+
+app.post('/add_entry', express.json(), (req, res) => {
+    const newEntry = req.body;
+    leaderboardData.push(newEntry);
+    sortLeaderboard(); // Sort the leaderboard data again after adding a new entry
 
     res.sendStatus(200);
 });
