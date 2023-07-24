@@ -16,11 +16,11 @@ function updateLeaderboard(data) {
         const skillBadgeCell = row.insertCell(4);
         const triviaQuestCell = row.insertCell(5);
         rankCell.textContent = index + 1;
-        nameCell.textContent = entry.full_name;
-        scoreCell.textContent = parseInt(entry['Game Count']) + parseInt(entry['Skill Badge Count']) + parseInt(entry['Trivia Quest Count']);
-        gameCountCell.textContent = entry['Game Count'];
-        skillBadgeCell.textContent = entry['Skill Badge Count'];
-        triviaQuestCell.textContent = entry['Trivia Quest Count'];
+        nameCell.textContent = entry.full_name; // Use entry.full_name instead of entry['Full Name']
+        scoreCell.textContent = parseInt(entry.game_count) + parseInt(entry.skill_badge_count) + parseInt(entry.trivia_quest_count); // Convert to integers and calculate the score
+        gameCountCell.textContent = entry.game_count;
+        skillBadgeCell.textContent = entry.skill_badge_count;
+        triviaQuestCell.textContent = entry.trivia_quest_count;
     });
 }
 
