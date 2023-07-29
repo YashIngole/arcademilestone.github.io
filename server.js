@@ -4,10 +4,15 @@ const fs = require('fs');
 const WebSocket = require('ws');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 8080; // Use the default HTTP port for App Engine
 let leaderboardData = [];
 
-const wss = new WebSocket.Server({ port: 8080 });
+// Create the WebSocket server using the same HTTP server as the Express app
+const server = app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+});
+
+const wss = new WebSocket.Server({ server });
 
 app.get('/bootstrap/css', (req, res) => {
     res.redirect('https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css');
@@ -29,10 +34,6 @@ fs.createReadStream('./data/leaderboard.csv')
         sortLeaderboard(); // Sort the leaderboard data in descending order based on the score
     });
 
-wss.on('connection', (ws) => {
-    ws.send(JSON.stringify(leaderboardData));
-});
-
 function sortLeaderboard() {
     leaderboardData.sort((a, b) => {
         const scoreA = parseInt(a.skill_badge_count) + parseInt(a.trivia_quest_count) + parseInt(a.game_count);
@@ -40,13 +41,21 @@ function sortLeaderboard() {
         return scoreB - scoreA;
     });
 
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(leaderboardData));
-        }
-    });
+    wss.clients.forEach(sendLeaderboardData);
 }
 
+function sendLeaderboardData(ws) {
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(leaderboardData));
+    }
+}
+
+// Route to get the current leaderboard data in JSON format
+app.get('/leaderboard', (req, res) => {
+    res.json(leaderboardData);
+});
+
+// Route to add a new entry to the leaderboard
 app.post('/add_entry', express.json(), (req, res) => {
     const newEntry = req.body;
     leaderboardData.push(newEntry);
@@ -56,7 +65,3 @@ app.post('/add_entry', express.json(), (req, res) => {
 });
 
 app.use(express.static('public'));
-
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});

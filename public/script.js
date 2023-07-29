@@ -1,9 +1,16 @@
-fetch('/leaderboard')
-    .then(response => response.json())
-    .then(data => {
-        updateLeaderboard(data);
-    });
+// Function to fetch leaderboard data and update the table
+function fetchLeaderboardData() {
+    fetch('/leaderboard')
+        .then(response => response.json())
+        .then(data => {
+            updateLeaderboard(data);
+        })
+        .catch(error => {
+            console.error('Error fetching leaderboard data:', error);
+        });
+}
 
+// Function to update the leaderboard table with the new data
 function updateLeaderboard(data) {
     const leaderboardTable = document.getElementById('leaderboard-table');
     leaderboardTable.innerHTML = ''; // Clear existing data
@@ -24,36 +31,28 @@ function updateLeaderboard(data) {
     });
 }
 
-// Simulated function to add a new entry
-function addNewEntry() {
-    const newEntry = {
-        'Full Name': 'New Player',
-        'Game Count': 5,
-        'Skill Badge Count': 3,
-        'Trivia Quest Count': 10
-    };
+// Function to establish the WebSocket connection
+function connectWebSocket() {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const socket = new WebSocket(wsProtocol + window.location.host);
 
-    fetch('/add_entry', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newEntry)
-    })
-    .then(() => {
-        console.log('New entry added to the leaderboard.');
-    })
-    .catch((error) => {
-        console.error('Error adding new entry:', error);
+    socket.addEventListener('open', () => {
+        console.log('WebSocket connection established.');
+        // Fetch leaderboard data when the WebSocket connection is open
+        fetchLeaderboardData();
+    });
+
+    socket.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data);
+        updateLeaderboard(data);
+    });
+
+    socket.addEventListener('close', () => {
+        console.log('WebSocket connection closed. Reconnecting...');
+        // Reconnect the WebSocket when it's closed
+        setTimeout(connectWebSocket, 2000);
     });
 }
 
-const addButton = document.getElementById('add-button');
-addButton.addEventListener('click', addNewEntry);
-
-// Establish WebSocket connection to receive real-time updates
-const socket = new WebSocket('ws://localhost:8080');
-socket.addEventListener('message', function (event) {
-    const data = JSON.parse(event.data);
-    updateLeaderboard(data);
-});
+// Establish WebSocket connection on page load
+connectWebSocket();
