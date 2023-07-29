@@ -1,0 +1,8 @@
+  GNU nano 5.4                                        app.yaml                                                 
+runtime: nodejs12
+env: standard
+
+handlers:
+- url: /.*
+  script: auto
+
