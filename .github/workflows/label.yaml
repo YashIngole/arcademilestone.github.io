@@ -1,0 +1,20 @@
+name: Run on Label
+
+on:
+  pull_request:
+    types:
+      - labeled
+
+jobs:
+  label_check:
+    name: Check Label
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Display Label Info
+        run: |
+          echo "Pull Request Number: ${{ github.event.pull_request.number }}"
+          echo "Added Label: ${{ github.event.label.name }}"
