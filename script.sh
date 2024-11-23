@@ -2,14 +2,14 @@
 
 # Ask for the user's name
 echo "What is your name?"
-read NAME
+read -r NAME  # Use -r to prevent backslash mangling
 
 # Greet the user
 echo "Hello, $NAME!"
 
 # Ask how they are doing
 echo "How are you doing today? (good/bad)"
-read RESPONSE
+read -r RESPONSE  # Use -r here as well
 
 # Conditional to respond to their input
 if [[ "$RESPONSE" == "good" ]]; then
